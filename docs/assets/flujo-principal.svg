@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="1020" viewBox="0 0 880 1020" role="img" aria-labelledby="title desc">
+  <title id="title">KlipNote · Video link to transcript / Del enlace al guion</title>
+  <desc id="desc">Capture sends a URL to KlipNoteWorkService. SealDownloader downloads audio, AudioExtractor prepares it, and SttRouter calls a provider. On success the service stores the transcript, exports text and updates Capture. Capturar envía el enlace al servicio. Este descarga y prepara el audio, solicita la transcripción y entrega el guion al historial, al portapapeles, a Descargas y a la pantalla.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#08765b"/></marker>
+    <style>
+      text { font-family: 'DejaVu Sans',sans-serif; fill:#132c36 }
+      .label { font-size:20px; font-weight:bold }
+      .code { font-family:'DejaVu Sans Mono',monospace; font-size:16px; fill:#405762 }
+      .edge { font-size:15px; fill:#21634f }
+      .card { fill:#fff; stroke:#abc8bf; stroke-width:1.5 }
+      .wire { stroke:#08765b; stroke-width:2.5; fill:none; marker-end:url(#arrow) }
+    </style>
+  </defs>
+  <rect width="880" height="1020" rx="20" fill="#f2f7f5"/>
+  <path d="M20 0H860Q880 0 880 20V112H0V20Q0 0 20 0Z" fill="#101c24"/>
+  <text x="38" y="54" style="fill:#f4faf8;font-size:32px;font-weight:bold">Del enlace al guion</text>
+  <text x="40" y="86" style="fill:#9bdbc7;font-size:20px">From video link to transcript · Android</text>
+  <g id="capture">
+    <rect class="card" x="105" y="140" width="670" height="73" rx="13"/>
+    <text class="label" x="130" y="171">Capturar / Capture</text><text class="code" x="130" y="196">MainActivity · startFromLink</text>
+  </g>
+  <path class="wire" d="M204 213v48"/><text class="edge" x="224" y="242">URL + modo / mode</text>
+  <g id="job">
+    <rect class="card" x="105" y="264" width="670" height="73" rx="13"/>
+    <text class="label" x="130" y="295">Trabajo en primer plano / Foreground job</text><text class="code" x="130" y="320">KlipNoteWorkService · runLinkJob</text>
+  </g>
+  <path class="wire" d="M204 337v48"/><text class="edge" x="224" y="366">Descargar desde la URL / Download from URL</text>
+  <g id="audio">
+    <rect class="card" x="105" y="388" width="670" height="73" rx="13"/>
+    <text class="label" x="130" y="419">Preparar audio / Prepare audio</text><text class="code" x="130" y="444">SealDownloader.download → AudioExtractor.prepareAudio</text>
+  </g>
+  <path class="wire" d="M204 461v48"/><text class="edge" x="224" y="490">Archivo de audio + MIME / Audio file + MIME</text>
+  <g id="transcription">
+    <rect x="105" y="512" width="670" height="102" rx="13" fill="#def1e9" stroke="#508c77" stroke-width="1.5"/>
+    <text class="label" x="130" y="544">Transcripción por API / Transcription API</text>
+    <text class="code" x="130" y="572">SttRouter.transcribe → Groq / Inworld /</text>
+    <text class="code" x="130" y="595">                       AssemblyAI / Deepgram</text>
+  </g>
+  <path class="wire" d="M204 614v48"/><text class="edge" x="224" y="643">Texto + proveedor / Transcript + provider</text>
+  <g id="result">
+    <rect class="card" x="105" y="665" width="670" height="73" rx="13"/>
+    <text class="label" x="130" y="696">Recibir el resultado / Handle success</text><text class="code" x="130" y="721">KlipNoteWorkService · TranscriptionResult</text>
+  </g>
+  <path d="M440 738v22H153v13M440 760h287v13" fill="none" stroke="#08765b" stroke-width="2.5"/>
+  <path class="wire" d="M153 773v39"/><path class="wire" d="M440 759v53"/><path class="wire" d="M727 773v39"/>
+  <g class="edge">
+    <rect x="69" y="773" width="168" height="23" rx="5" fill="#f2f7f5"/><text x="153" y="790" text-anchor="middle">ID + texto / text</text>
+    <rect x="384" y="773" width="112" height="23" rx="5" fill="#f2f7f5"/><text x="440" y="790" text-anchor="middle">Texto / Text</text>
+    <rect x="653" y="773" width="148" height="23" rx="5" fill="#f2f7f5"/><text x="727" y="790" text-anchor="middle">JobState.Success</text>
+  </g>
+  <g id="outputs" text-anchor="middle">
+    <rect class="card" x="24" y="816" width="258" height="145" rx="13"/><rect class="card" x="311" y="816" width="258" height="145" rx="13"/><rect class="card" x="598" y="816" width="258" height="145" rx="13"/>
+    <text class="label" x="153" y="850">Guiones</text><text x="153" y="876">Transcript history</text>
+    <text class="code" x="153" y="915">TranscriptHistoryStore</text><text class="code" x="153" y="938">upsertById</text>
+    <text class="label" x="440" y="850">.txt + portapapeles</text><text x="440" y="876">Text file + clipboard</text>
+    <text class="code" x="440" y="915">saveTranscriptTxt</text><text class="code" x="440" y="938">copyToClipboard</text>
+    <text class="label" x="727" y="850">Pantalla Capturar</text><text x="727" y="876">Capture result</text>
+    <text class="code" x="727" y="915">KlipNoteJobHub</text><text class="code" x="727" y="938">MainActivity</text>
+  </g>
+  <text x="440" y="996" text-anchor="middle" class="edge">Solo Texto · Automático · Modo $0   /   Text only · Automatic · $0 mode</text>
+</svg>
