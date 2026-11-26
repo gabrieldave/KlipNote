@@ -1,171 +1,80 @@
-<p align="center">🇺🇸 <strong>English</strong> · <a href="README.es.md">🇪🇸 Español</a></p>
+# KlipNote
+
+English · [Español](README.es.md)
+
+![A linked video becomes a plain-text transcript through its audio track](docs/assets/portada.png)
+
+Turn spoken words in videos and audio files into searchable transcripts on Android. Paste a link, share media from another app, or pick a file on your phone. KlipNote prepares the audio, sends it to a transcription service with your own API key, and keeps the text available to copy, save, or send to an AI app.
+
+[Download the Android APK](https://github.com/gabrieldave/KlipNote/releases/latest) · [Get a provider key](docs/free-keys.md) · [FAQ](docs/faq.md) · [GPL-3.0](LICENSE)
+
+## Try it with one video
+
+1. On the release page, open **Assets** and download the `.apk`. Install it on an Android 8.0+ phone with an **arm64** processor. If Android asks, allow the app that opened the APK to install it.
+2. Follow onboarding to add a provider key, or open **Settings → My keys**. One configured provider with available credit is enough to start.
+3. In **Capture**, paste a public video link with clear speech. Select **Text only** and tap **Extract transcript**.
+4. Read the result in Capture. Open **Transcripts** and search for a phrase from the recording. The app also copies the result and attempts to export a UTF-8 file to `Download/KlipNote/Texto/`.
+5. Tap **Send with AI** to share the text file and instructions for a brief, infographic, HTML page and slide deck. Choose the receiving app in Android. That app generates the requested outputs.
+
+**Upgrading:** install newer releases over an existing installation with the same signature. Moving from v1.7.2 or earlier to v1.7.3+ requires a one-time uninstall because the signing certificate changed. Uninstalling clears local data. Preserve any text and keys you need first.
 
 <p align="center">
-  <img src="docs/assets/logo.png" alt="KlipNote logo" width="128" />
+  <img src="docs/assets/screenshots/01-asistente.png" alt="Onboarding" width="21%" />
+  <img src="docs/assets/screenshots/02-capturar.png" alt="Capture" width="21%" />
+  <img src="docs/assets/screenshots/03-guiones.png" alt="Transcripts" width="21%" />
+  <img src="docs/assets/screenshots/04-ajustes-temas.png" alt="Settings" width="21%" />
 </p>
 
-<h1 align="center">🎙️ KlipNote</h1>
+## What you can do
 
-<p align="center"><strong>Turn videos and audio into text. Free, on your Android.</strong></p>
+| Task | Options |
+| --- | --- |
+| Capture speech | Paste links from YouTube, TikTok, Instagram, Facebook or X. Share audio or video from Gallery or WhatsApp, or choose a local file. Some videos require a site login. |
+| Choose the output | Text only, audio + text, video + text, or download only. Select automatic speech-language detection or a fixed language. |
+| Reuse a transcript | Search history, copy text, save or share a `.txt`, or send it to another app with study and presentation instructions. |
+| Manage the app | Configure individual providers, inspect usage meters, change color themes, back up transcripts, or export an encrypted key backup separately. |
 
-<p align="center">
-  Paste a link, share a video, or pick a file.<br />
-  KlipNote transcribes using free credits from several services (your own keys)<br />
-  and leaves the text ready to paste into any AI.
-</p>
+**Cost and privacy.** The app is free. Automatic routing tries configured providers in priority order. The default order is Groq, Inworld, AssemblyAI, then Deepgram. **$0 mode** blocks the final paid engine. A provider with your payment details can bill under its own terms when its allowance runs out. Keys are encrypted on the phone, and audio goes directly to the selected provider for transcription. KlipNote has no first-party transcription server or usage analytics. GitHub supplies optional offer updates, APK release information and downloader updates. [Provider guide](docs/free-keys.md) · [Offer configuration](config/stt-router.json)
 
-<p align="center">
-  <a href="https://github.com/gabrieldave/KlipNote/releases/latest"><img src="https://img.shields.io/github/v/release/gabrieldave/KlipNote?style=for-the-badge&label=Download&color=10B981" alt="Download latest release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge" alt="GPL-3.0 license" /></a>
-  <img src="https://img.shields.io/badge/Android-8.0%2B-green?style=for-the-badge&logo=android&logoColor=white" alt="Android 8.0+" />
-</p>
+## Architecture · From a video link to text
 
-<p align="center">
-  <img src="docs/assets/screenshots/01-asistente.png" alt="Onboarding" width="200" />
-  <img src="docs/assets/screenshots/02-capturar.png" alt="Capture tab" width="200" />
-  <img src="docs/assets/screenshots/03-guiones.png" alt="Transcripts tab" width="200" />
-  <img src="docs/assets/screenshots/04-ajustes-temas.png" alt="Settings with themes" width="200" />
-</p>
+KlipNote is a Kotlin Android app with a Jetpack Compose / Material 3 interface, coroutines for background work and OkHttp for provider requests. The manifest registers the launcher, Android share targets and a foreground data-sync service. At startup the application restores language and cached routing settings and initializes the downloader. [Build configuration](app/build.gradle.kts) · [Manifest](app/src/main/AndroidManifest.xml) · [KlipNoteApplication.kt](app/src/main/java/com/blackeye/klipnote/KlipNoteApplication.kt)
 
-<p align="center">
-  Maintained by <a href="https://github.com/gabrieldave"><strong>@gabrieldave</strong></a> —
-  use it, fork it, leave a ⭐, and see <a href="#-contributing">how to build</a>.
-</p>
+![Text-only link flow from Capture through audio preparation and a provider to transcript history, a text file, the clipboard and the result screen](docs/assets/flujo-principal.svg)
 
----
+| Follow the action | Code and data |
+| --- | --- |
+| Capture the link | [MainActivity.kt](app/src/main/java/com/blackeye/klipnote/MainActivity.kt): `startFromLink` extracts the URL and checks for an active job, a key and downloader readiness. `launchLinkJob` passes the URL, output mode, language and routing selection to the service. |
+| Prepare the audio | [KlipNoteWorkService.kt](app/src/main/java/com/blackeye/klipnote/KlipNoteWorkService.kt): `runLinkJob` calls `download` in [SealDownloader.kt](app/src/main/java/com/blackeye/klipnote/SealDownloader.kt) (yt-dlp), then `prepareAudio` in [AudioExtractor.kt](app/src/main/java/com/blackeye/klipnote/AudioExtractor.kt). Download-only jobs finish before transcription. |
+| Transcribe | [SttRouter.kt](app/src/main/java/com/blackeye/klipnote/SttRouter.kt): `transcribe` takes the audio file and MIME type. In automatic mode, `transcribeCascade` skips ineligible providers and tries the next eligible one after a failure. The successful response includes text, provider and duration when available. |
+| Save and display | The service calls `upsertById` in [TranscriptHistoryStore.kt](app/src/main/java/com/blackeye/klipnote/TranscriptHistoryStore.kt) with the job ID, original URL and transcript. It calls `saveTranscriptTxt`, copies the text, and publishes success through [KlipNoteJobHub.kt](app/src/main/java/com/blackeye/klipnote/KlipNoteJobHub.kt). Capture observes the state and refreshes history. |
 
-## ✨ Why KlipNote?
+**Design decisions.** The service persists a successful link job even when Capture is closed. The UI reuses the same history ID so reopening the screen does not duplicate the entry. Local files enter through `runTranscription` in `MainActivity` and share the audio preparation and router. Use the local-file path when diagnosing an import issue. Configurable provider order lets the app adapt to changing offers. The paid-engine permission stays on the device. [RemoteRouterConfig.kt](app/src/main/java/com/blackeye/klipnote/RemoteRouterConfig.kt) · [BillingManager.kt](app/src/main/java/com/blackeye/klipnote/BillingManager.kt)
 
-Transcription usually costs money or hits a single quota that runs out fast.
+## Where to make a change
 
-KlipNote uses **your own API keys** for services that **give free credits or minutes**. It tries them in order (Groq → Inworld → AssemblyAI → Deepgram). When one is out of credit or rate-limited, it moves on.
+Read [AGENTS.md](AGENTS.md) before editing.
 
-We don’t promise “free forever”: each company sets its own offers and **they can change**. The app is free; transcription cost depends on those gifts and on **not adding a credit card** there.
+| I want to change | Start in | How to check |
+| --- | --- | --- |
+| Capture or result controls | [MainActivity.kt](app/src/main/java/com/blackeye/klipnote/MainActivity.kt) (`CapturarTab`, `TranscriptActionBar`) | Extract a short link, then open the same entry in Transcripts. Check labels and available actions on both screens. |
+| Provider priority or eligibility | [Offer configuration](config/stt-router.json), [RemoteRouterConfig.kt](app/src/main/java/com/blackeye/klipnote/RemoteRouterConfig.kt), [SttRouter.kt](app/src/main/java/com/blackeye/klipnote/SttRouter.kt) | Run [RemoteRouterConfigTest](app/src/test/java/com/blackeye/klipnote/RemoteRouterConfigTest.kt) for the default order. Check custom routing on a device with configured providers and $0 mode enabled. |
+| The four-in-one AI handoff | [AiStudyPrompts.kt](app/src/main/java/com/blackeye/klipnote/AiStudyPrompts.kt), [SavedMedia.kt](app/src/main/java/com/blackeye/klipnote/SavedMedia.kt) | Run [AiStudyPromptsTest](app/src/test/java/com/blackeye/klipnote/AiStudyPromptsTest.kt). Tap **Send with AI** and check receipt of both the file and instructions in the destination app. |
 
----
+### Build and verification
 
-## 📲 Download
+Use JDK 17, Android SDK Platform 35 and Build Tools 35.0.0, as in [PR checks](.github/workflows/pr-checks.yml). Set the SDK path locally if needed. [Example SDK settings](local.properties.example)
 
-**[→ Download the latest APK](https://github.com/gabrieldave/KlipNote/releases/latest)**
+```sh
+./gradlew testDebugUnitTest assembleDebug
+adb devices
+adb -d install -r app/build/outputs/apk/debug/*.apk
+```
 
-**Requirements:** Android 8.0+ · **arm64** CPU (most phones from 2018 onward).
+The install command selects a USB-connected phone. Debug builds use `com.blackeye.klipnote.debug`. For this documentation update, both images were rendered, the local README links were checked, and the source path above was traced. The local Gradle attempt stopped before the tasks ran because the wrapper could not download Gradle 8.9. APK installation and live transcription were not tested locally.
 
-1. On Releases, download the **`.apk`** file (not “Source code”).
-2. Open it on your phone. Allow installs from unknown sources if Android asks.
-3. To **update**, install the new APK over the old one — keys and transcripts should stay.
-4. **One-time exception:** if you still have **v1.7.2** (or an earlier build), **uninstall once** before installing **v1.7.3+**. The signing certificate changed; Android will not update over the old signature. Local data is wiped unless you backed it up.
+## Project and credits
 
----
+Maintained by [@gabrieldave](https://github.com/gabrieldave). See the [changelog](CHANGELOG.md), [guide index](docs/README.md) and [offer contribution guide](docs/contributing-offers.md). Issues and pull requests are welcome. Workflow changes require maintainer review.
 
-## 🚀 How it works
-
-1. **Install** KlipNote from [Releases](https://github.com/gabrieldave/KlipNote/releases/latest).
-2. Open the app: the **onboarding** walks you through getting a free key (Groq is recommended; a few minutes).
-3. Paste a YouTube, TikTok, Instagram, Facebook, or X link, **or** share a video from Gallery/WhatsApp, **or** pick a local file.
-4. Tap **Extract transcript**. The text is **copied automatically** and saved under **Transcripts**.
-
-One free key is enough to start. Add more anytime under **Settings → My keys**.
-
----
-
-## 💸 The $0 rule
-
-> [!IMPORTANT]
-> **Do not add a credit card** on Groq, Inworld, AssemblyAI, or Deepgram.  
-> If you do and the free grant ends, the provider may charge you — the app cannot stop that.  
-> The **$0 mode** switch (on by default) only blocks the paid engine at the end of the list.
-
----
-
-## 📖 Guides
-
-| Guide | About |
-|---|---|
-| [Free keys](docs/free-keys.md) | Step-by-step for each provider |
-| [FAQ](docs/faq.md) | Safety, Play Store, broken sites… |
-| [Contribute offers](docs/contributing-offers.md) | Update `config/stt-router.json` without coding |
-
-Index: **[docs/README.md](docs/README.md)** · Spanish guides: [docs/README.es.md](docs/README.es.md)
-
----
-
-## 🔧 Features
-
-**Transcription**
-- Automatic mode: Groq → Inworld → AssemblyAI → Deepgram (paid only if you allow it)
-- Four modes: Text only · Audio+text · Video+text · Download only
-- Compressed audio so long videos can still be transcribed
-- Notification when a job finishes
-- Transcript history with search
-
-**Audio / video sources**
-- Links from YouTube, TikTok, Instagram, Facebook, and X
-- Share from Gallery, Files, WhatsApp, etc.
-- Local files
-- Download engine (yt-dlp) that **updates itself**
-
-**Savings & control**
-- Usage meters (live or estimated, depending on the provider)
-- $0 mode to avoid the paid engine
-- Offers updatable via remote config (`config/stt-router.json`)
-
-**Privacy & security**
-- Keys encrypted on device
-- No first-party server or usage analytics
-- Site logins only when a video requires them (cookies stay on device)
-
-**Personalization**
-- Color themes
-- First-run onboarding
-- Language detection / forced language for speech
-
----
-
-## 🔒 Privacy
-
-- Keys are encrypted with the Android Keystore and stay on your phone except when calling the provider you chose.
-- Transcripts, cookies, and settings are **local**.
-- From this repo the app may fetch [`config/stt-router.json`](config/stt-router.json) (offer texts/order). **Check for updates** also queries GitHub **Releases** for a newer APK. It does not send your data to KlipNote.
-- [youtubedl-android](https://github.com/yausername/youtubedl-android) may update **yt-dlp** / **ejs** binaries from GitHub so downloads keep working.
-
----
-
-## ❓ New to GitHub?
-
-1. Open **[Releases](https://github.com/gabrieldave/KlipNote/releases/latest)**.
-2. Under **Assets**, tap the file ending in **`.apk`**.
-3. Open it on Android and tap **Install**.
-4. If asked, allow installs from unknown sources for the app that downloaded the file.
-
-Do not install the “Source code” ZIPs — those are the project source, not the app.
-
----
-
-## 📙 Contributing
-
-Contributions are welcome:
-
-- **Issues** for bugs or ideas
-- **Pull Requests** for offers (`config/stt-router.json`) and code
-- Changes to **`.github/workflows`** are reviewed carefully — ask first
-- Local build: `./gradlew assembleDebug` (Android SDK required; copy `local.properties.example`)
-- If you use an AI assistant, follow [`AGENTS.md`](AGENTS.md) as well
-
----
-
-## ❗ About / Credits
-
-Maintainer: **[gabrieldave](https://github.com/gabrieldave)**.
-
-**Thanks to**
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) — download engine
-- [youtubedl-android](https://github.com/yausername/youtubedl-android) — yt-dlp on Android (junkfood02 fork)
-- [Seal](https://github.com/JunkFood02/Seal) — reference app for download ideas and pieces
-
-KlipNote is a **transcription tool**. Respect each platform’s terms and the copyright of anything you download or transcribe. Not affiliated with Groq, Inworld, AssemblyAI, Deepgram, YouTube, or other brands mentioned.
-
----
-
-## 📜 License
-
-[GNU General Public License v3.0](LICENSE) (GPL-3.0).
+Licensed under [GNU GPL v3.0](LICENSE). [yt-dlp](https://github.com/yt-dlp/yt-dlp) powers downloads through [youtubedl-android](https://github.com/yausername/youtubedl-android) and its junkfood02 fork. [Seal](https://github.com/JunkFood02/Seal) provided download ideas and components. See [third-party notices](THIRD_PARTY_NOTICES.md) and [license texts](LICENSES/). Respect platform terms and the rights of content owners. KlipNote is independent of the platforms and providers mentioned here.
