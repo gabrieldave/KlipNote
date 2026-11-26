@@ -78,6 +78,13 @@ enum class AiStudyMode {
 @Keep
 object AiStudyPrompts {
 
+    val SEND_WITH_AI_MODES = listOf(
+        AiStudyMode.BRIEF,
+        AiStudyMode.INFOGRAPHIC,
+        AiStudyMode.WEBSITE_HTML,
+        AiStudyMode.SLIDES
+    )
+
     /**
      * Prompt de instrucciones únicamente: NUNCA incrusta el cuerpo del guion.
      * La IA debe trabajar sobre el archivo `.txt` adjunto (Descargas/KlipNote/Texto).
@@ -90,6 +97,58 @@ object AiStudyPrompts {
             mode = mode,
             sourceTitleOrUrl = sourceTitleOrUrl
         )
+    }
+
+    /**
+     * Paquete 4 en 1 para «Enviar con IA»: combina Brief, Infografía, Sitio web HTML y Presentación
+     * en una sola respuesta, trabajando sobre el `.txt` adjunto sin incrustar el guion.
+     */
+    fun buildSendWithAiPack(context: Context, sourceTitleOrUrl: String = ""): String {
+        val es = AppLocales.isAppSpanish(context)
+        return composeSendWithAiPack(
+            es = es,
+            languageRule = languageRule(context, es),
+            sourceTitleOrUrl = sourceTitleOrUrl
+        )
+    }
+
+    /** Visible for JVM tests: same composition as [buildSendWithAiPack] without Android string resources. */
+    internal fun composeSendWithAiPack(
+        es: Boolean,
+        languageRule: String,
+        sourceTitleOrUrl: String = ""
+    ): String = buildString {
+        appendLine(languageRule)
+        appendLine()
+        appendLine(safetyRule(es))
+        appendLine()
+        if (es) {
+            appendLine(
+                "GENERA Y ENTREGA AHORA, EN ESTA MISMA RESPUESTA Y EN ORDEN, los 4 entregables " +
+                    "terminados separados por las secciones ### 1) a ### 4). No pidas confirmaciones, " +
+                    "no te detengas a preguntar preferencias ni generes prompts para otra IA."
+            )
+        } else {
+            appendLine(
+                "GENERATE AND DELIVER NOW, IN THIS SAME RESPONSE AND IN ORDER, all 4 finished " +
+                    "deliverables separated by sections ### 1) to ### 4). Do not ask for confirmation, " +
+                    "do not pause for preferences, and never generate prompts for another AI."
+            )
+        }
+        SEND_WITH_AI_MODES.forEachIndexed { index, mode ->
+            val sectionTitle = when (mode) {
+                AiStudyMode.BRIEF -> if (es) "Brief ejecutivo" else "Executive brief"
+                AiStudyMode.INFOGRAPHIC -> if (es) "Infografía visual" else "Visual infographic"
+                AiStudyMode.WEBSITE_HTML -> if (es) "Sitio web HTML" else "HTML website"
+                AiStudyMode.SLIDES -> if (es) "Presentación visual" else "Visual slides"
+                else -> mode.name
+            }
+            appendLine()
+            appendLine("### ${index + 1}) $sectionTitle")
+            appendLine(intentFor(mode, es))
+        }
+        appendLine()
+        appendLine(attachmentInstructions(es, sourceTitleOrUrl))
     }
 
     /** Visible for JVM tests: same composition as [build] without Android string resources. */

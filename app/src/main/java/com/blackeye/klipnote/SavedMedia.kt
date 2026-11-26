@@ -57,6 +57,56 @@ fun saveOrShareTranscriptTxt(
 }
 
 /**
+ * Guarda el guion como `.txt` en Descargas/KlipNote/Texto, copia el prompt 4 en 1 al portapapeles
+ * como respaldo y abre el selector de Android adjuntando el `.txt` junto con el prompt.
+ */
+fun sendTranscriptWithAiPack(
+    context: Context,
+    title: String,
+    transcript: String
+): Boolean {
+    val uri = saveTranscriptTxt(context, title, transcript)
+    if (uri == null) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.save_txt_failed),
+            Toast.LENGTH_SHORT
+        ).show()
+        return false
+    }
+    val displayName = SealDownloader.sanitizeFileName(title.ifBlank { "guion" }) + ".txt"
+    val prompt = AiStudyPrompts.buildSendWithAiPack(context, title)
+    copyToClipboard(context, prompt)
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_TEXT, prompt)
+        putExtra(Intent.EXTRA_SUBJECT, displayName)
+        clipData = ClipData.newRawUri(displayName, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    return try {
+        context.startActivity(
+            Intent.createChooser(send, context.getString(R.string.send_with_ai_title))
+        )
+        Toast.makeText(
+            context,
+            context.getString(R.string.send_with_ai_toast),
+            Toast.LENGTH_LONG
+        ).show()
+        true
+    } catch (_: ActivityNotFoundException) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.ai_share_unavailable),
+            Toast.LENGTH_LONG
+        ).show()
+        false
+    }
+}
+
+/**
  * Archivo guardado en Descargas/KlipNote (MediaStore content Uri).
  */
 data class SavedMediaInfo(

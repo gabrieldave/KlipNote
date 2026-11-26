@@ -632,4 +632,7 @@
     <string name="share_txt_title">Enviar guion (.txt)</string>
     <string name="save_txt_ok">Guardado en Descargas/KlipNote/Texto</string>
     <string name="save_txt_failed">No se pudo guardar el archivo .txt</string>
+    <string name="send_with_ai">Enviar con IA</string>
+    <string name="send_with_ai_title">Enviar .txt + paquete IA 4 en 1</string>
+    <string name="send_with_ai_toast">.txt listo y prompt 4 en 1 copiado (Brief, Infografía, HTML y Presentación).</string>
 </resources>

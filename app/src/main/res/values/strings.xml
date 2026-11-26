@@ -653,4 +653,7 @@
     <string name="share_txt_title">Share script (.txt)</string>
     <string name="save_txt_ok">Saved in Downloads/KlipNote/Texto</string>
     <string name="save_txt_failed">Could not save the .txt file</string>
+    <string name="send_with_ai">Send with AI</string>
+    <string name="send_with_ai_title">Send .txt + 4-in-1 AI pack</string>
+    <string name="send_with_ai_toast">.txt attached and 4-in-1 prompt copied (Brief, Infographic, HTML, Slides).</string>
 </resources>

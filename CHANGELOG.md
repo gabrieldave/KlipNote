@@ -1,5 +1,10 @@
 # Changelog — KlipNote
 
+## 1.9.3
+
+- **Send with AI (4-in-1 pack):** new full-width button on Capture results and every Guiones card that saves and attaches the `.txt` from `Downloads/KlipNote/Texto`, copies the combined 4-in-1 prompt (Brief, Infographic, HTML website, Slides) as backup, and opens the Android share sheet.
+- **ES — Enviar con IA (paquete 4 en 1):** nuevo botón de ancho completo en Capturar y en cada tarjeta de Guiones que adjunta el `.txt` de `Descargas/KlipNote/Texto`, copia el prompt 4 en 1 (Brief, Infografía, HTML y Presentación) como respaldo y abre el selector de apps.
+
 ## 1.9.2
 
 - **Scripts / Open link:** persist optional `sourceUrl` with each transcript so Open link works after download titles replace the URL; hide the button when there is no openable link.

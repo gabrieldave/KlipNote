@@ -144,4 +144,50 @@ class AiStudyPromptsTest {
             primary.toSet()
         )
     }
+
+    @Test
+    fun sendWithAiPackCombinesFourDeliverablesAndReferencesAttachedTxt() {
+        assertEquals(
+            listOf(
+                AiStudyMode.BRIEF,
+                AiStudyMode.INFOGRAPHIC,
+                AiStudyMode.WEBSITE_HTML,
+                AiStudyMode.SLIDES
+            ),
+            AiStudyPrompts.SEND_WITH_AI_MODES
+        )
+        val title = "Demo KlipNote 1.9.3"
+        for (spanish in listOf(true, false)) {
+            val prompt = AiStudyPrompts.composeSendWithAiPack(
+                es = spanish,
+                languageRule = if (spanish) "Idioma: español." else "Language: English.",
+                sourceTitleOrUrl = title
+            )
+            for (n in 1..4) {
+                assertTrue(
+                    "Pack (es=$spanish) must include section ### $n)",
+                    prompt.contains("### $n)")
+                )
+            }
+            for (mode in AiStudyPrompts.SEND_WITH_AI_MODES) {
+                assertTrue(
+                    "Pack (es=$spanish) must reuse intentFor($mode)",
+                    prompt.contains(AiStudyPrompts.intentFor(mode, spanish))
+                )
+            }
+            assertTrue(
+                "Pack (es=$spanish) must mention KlipNote/Texto",
+                prompt.contains("KlipNote/Texto")
+            )
+            assertTrue(
+                "Pack (es=$spanish) must include source title",
+                prompt.contains(title)
+            )
+            assertFalse(
+                "Pack (es=$spanish) must never embed <<<TRANSCRIPT_START>>>",
+                prompt.contains("<<<TRANSCRIPT_START>>>") ||
+                    prompt.contains("<<<TRANSCRIPT_END>>>")
+            )
+        }
+    }
 }

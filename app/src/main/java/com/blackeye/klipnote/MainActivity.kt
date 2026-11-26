@@ -49,6 +49,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
@@ -1998,62 +1999,97 @@ private fun TranscriptActionBar(
 ) {
     if (text.isBlank()) return
     val context = LocalContext.current
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        TranscriptActionButton(
-            label = stringResource(R.string.action_copy),
-            icon = Icons.Default.ContentCopy,
-            onClick = {
-                if (onCopied != null) {
-                    onCopied.invoke()
-                } else {
-                    copyToClipboard(context, text)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TranscriptActionButton(
+                label = stringResource(R.string.action_copy),
+                icon = Icons.Default.ContentCopy,
+                onClick = {
+                    if (onCopied != null) {
+                        onCopied.invoke()
+                    } else {
+                        copyToClipboard(context, text)
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.copied_to_clipboard),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+            TranscriptActionButton(
+                label = stringResource(R.string.save_txt),
+                icon = Icons.Default.SaveAlt,
+                onClick = {
+                    val uri = saveTranscriptTxt(context, sourceTitleOrUrl, text)
                     Toast.makeText(
                         context,
-                        context.getString(R.string.copied_to_clipboard),
+                        context.getString(
+                            if (uri != null) R.string.save_txt_ok else R.string.save_txt_failed
+                        ),
                         Toast.LENGTH_SHORT
                     ).show()
-                }
-            },
-            modifier = Modifier.weight(1f)
-        )
-        TranscriptActionButton(
-            label = stringResource(R.string.save_txt),
-            icon = Icons.Default.SaveAlt,
-            onClick = {
-                val uri = saveTranscriptTxt(context, sourceTitleOrUrl, text)
-                Toast.makeText(
-                    context,
-                    context.getString(
-                        if (uri != null) R.string.save_txt_ok else R.string.save_txt_failed
-                    ),
-                    Toast.LENGTH_SHORT
-                ).show()
-            },
-            modifier = Modifier.weight(1f)
-        )
-        TranscriptActionButton(
-            label = stringResource(R.string.share_txt),
-            icon = Icons.Default.Share,
-            onClick = {
-                val uri = saveOrShareTranscriptTxt(
-                    context = context,
-                    title = sourceTitleOrUrl,
-                    transcript = text,
-                    share = true
-                )
-                if (uri == null) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.save_txt_failed),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            },
-            modifier = Modifier.weight(1f)
-        )
+                },
+                modifier = Modifier.weight(1f)
+            )
+            TranscriptActionButton(
+                label = stringResource(R.string.share_txt),
+                icon = Icons.Default.Share,
+                onClick = {
+                    val uri = saveOrShareTranscriptTxt(
+                        context = context,
+                        title = sourceTitleOrUrl,
+                        transcript = text,
+                        share = true
+                    )
+                    if (uri == null) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.save_txt_failed),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        OutlinedButton(
+            onClick = { sendTranscriptWithAiPack(context, sourceTitleOrUrl, text) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, Accent.copy(alpha = 0.65f)),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Accent.copy(alpha = 0.12f),
+                contentColor = Accent
+            ),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = Accent,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.size(6.dp))
+            Text(
+                text = stringResource(R.string.send_with_ai),
+                color = Accent,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
